@@ -1,0 +1,67 @@
+{% extends 'base_template.html' %}
+
+{% block title %}
+Emergency Save | {{ data['endport'] }}
+{% endblock title %}
+
+{% block style %}
+.toggle-btn {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+.alerts-div {
+    margin-top: 10px;
+}
+.alert-pass-match {
+    display: {{data['alert_match']}} ;
+}
+.alert-pass-long {
+    display: {{data['alert_long']}} ;
+}
+{% endblock style %}
+
+{% block body %}
+<div class="container alerts-div">
+    <div class="alert alert-danger alert-dismissible fade show alert-pass-match" role="alert">
+        <strong>Password Doesn't Match!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show alert-pass-long" role="alert">
+        <strong>Enter Password Less then 20 Charcater!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<div class="toggle-btn">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Create this Page</button>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Create Personal Page</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/{{ data['endport'] }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="password" class="form-control" name="newpassword", placeholder="Create Password">
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" name="newpasswordConf", placeholder="Confirm Password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" name="register-btn">Create Page</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock body %}

@@ -1,0 +1,75 @@
+{% extends 'base_template.html' %}
+
+{% block title %}
+Emergency Save | {{ data['endport'] }}
+{% endblock title %}
+
+{% block style %}
+.toggle-btn {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+.alerts-div {
+    margin-top: 10px;
+}
+.alert-updated {
+    display: {{data['alert_updated']}};
+}
+.alert-pass-match {
+    display: {{data['alert_match']}} ;
+}
+.changedata-btn {
+    margin: 10px;
+}
+{% endblock style %}
+
+{% block body %}
+<div class="container">
+    <div class="alerts-div">
+        <div class="alert alert-danger alert-dismissible fade show alert-pass-match" role="alert">
+            <strong>Incorrect Password!</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div class="alert alert-success alert-dismissible fade show alert-updated" role="alert">
+            <strong>Done!</strong> You data has been Updated
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <form action="/{{ data['endport'] }}" method="post">
+        <div class="form-floating alerts-div">
+            <textarea class="form-control" name="userdata" placeholder="Add Your Text Here" id="floatingTextarea2" style="height: 500px">{{ data['userdata'] }}</textarea>
+            <label for="floatingTextarea2">Your Text</label>
+        </div>
+        <div class="changedata-btn">
+            <button type="submit" name="update-data-btn" class="btn btn-primary">Update Data</button>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">Delete Data</button>
+        </div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Delete Confirmation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="/" method="POST">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <input type="password" class="form-control" name="password", placeholder="Enter Password">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger" name="delete-data-btn">Confirm Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock body %}

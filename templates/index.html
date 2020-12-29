@@ -1,0 +1,33 @@
+{% extends 'base_template.html' %}
+
+{% block title %}
+Emergency Save by Mr. Grey
+{% endblock title %}
+
+{% block style %}
+{% endblock style %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Emergency Save</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </div>
+</nav>
+
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  <strong>Welcome! to Emergency Save.</strong> Save text with full Privacy.
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+<div class="container">
+    <form action="/detect", method="GET">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" name="endport" placeholder="Enter Page name" aria-label="Enter Page name" aria-describedby="button-addon2">
+            <button class="btn btn-secondary" type="submit" id="button-addon2">Goto Your Page</button>
+        </div>
+    </form>
+    <p>The place where you can save your important and confidencial text upto 10k character without worry about them.</p>  
+</div>
+{% endblock body %}
