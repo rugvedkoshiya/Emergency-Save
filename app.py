@@ -125,4 +125,4 @@ def not_found500(e):
   return render_template("500.html") 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
