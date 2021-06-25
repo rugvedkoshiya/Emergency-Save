@@ -1,7 +1,14 @@
 from flask import Flask, render_template, request, redirect
-import sqlite3
+from config import Config as SETTING
+from flask_pymongo import pymongo
+# import sqlite3
 
 app = Flask(__name__)
+
+# database Settings
+myclient = pymongo.MongoClient(SETTING.MONGO_LINK)
+EmergencySaveDatabase = myclient[SETTING.DATABASE_NAME]
+EmergencySaveCollection = EmergencySaveDatabase[SETTING.DATABASE_COLLECTION]
 
 @app.route('/')
 def index():
@@ -15,101 +22,78 @@ def detect():
 
 @app.route('/<string:PersonalPage>',  methods=['GET', 'POST'])
 def PersonalPage(PersonalPage):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        # check that page is available or not
+        userCheck = EmergencySaveCollection.count_documents({"endport" : PersonalPage})
+        if userCheck != 0:
+            # show Login page
+            params = {'endport': PersonalPage, 'alert_match': 'none'}
+            return render_template('PersonalPageLogin.html', data=params)
+        else:
+            # show Signup page
+            params = {'endport': PersonalPage, 'alert_match': 'none', 'alert_long': 'none'}
+            return render_template('PersonalPageCreate.html', data=params)
+
+    elif request.method == 'POST':
         if 'login-btn' in request.form:
             # grab data from website
-            endport = PersonalPage
             password = request.form['password']
 
             # authentication of user
-            conn = sqlite3.connect('pagedetail.db')
-            GET_DATA = conn.execute(f"SELECT ENDPORT, PASSWORD FROM endports WHERE ENDPORT='{endport}'")
-            for row in GET_DATA:
-                if row[0] == endport and row[1] == password:
-                    GET_DATA = conn.execute(f"SELECT DATA FROM endports WHERE ENDPORT='{endport}'")
-                    for data_row in GET_DATA:
-                        params = {'endport': PersonalPage, 'userdata': data_row[0], 'alert_updated': 'none', 'alert_match': 'none'}
-                        conn.close()
-                        return render_template('PersonalPageHome.html', data=params)
-                else:
-                    params = {'endport': PersonalPage, 'alert_match': 'block'}
-                    return render_template('PersonalPageLogin.html', data=params)
+            userCheck = EmergencySaveCollection.count_documents({"endport" : PersonalPage, "password" : password})
+            if userCheck == 1:
+                userData = EmergencySaveCollection.find({"endport" : PersonalPage, "password" : password}, {"_id" : False})[0]
+                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none'}
+                return render_template('PersonalPageHome.html', data=params)
+            else:
+                params = {'endport': PersonalPage, 'alert_match': 'block'}
+                return render_template('PersonalPageLogin.html', data=params)
+
         elif 'register-btn' in request.form:
-            
-            endport = PersonalPage
             password = request.form['newpassword']
             passwordConf = request.form['newpasswordConf']
 
-            # checking password and create page
+            # Check password and add
             if password == passwordConf:
-                if len(password) < 21:
-                    conn = sqlite3.connect('pagedetail.db')
-                    conn.execute(f"INSERT INTO endports (ENDPORT, PASSWORD, DATA) VALUES ('{endport}', '{password}', 'Your Text')")
-                    conn.commit()
-                    # for row in GET_DATA:
-
-                    conn.close()
-                    params = {'endport': PersonalPage, 'userdata': 'Your Text', 'alert_updated': 'none', 'alert_match': 'none'}
-                    # conn.close()
-                    return render_template('PersonalPageHome.html', data=params)
-                else:
-                    params = {'endport': PersonalPage, 'alert_match': 'none', 'alert_long': 'block'}
-                    return render_template('PersonalPageCreate.html', data=params)
+                newEndport = {
+                    "endport" : PersonalPage,
+                    "password" : password,
+                    "data" : ""
+                }
+                EmergencySaveCollection.insert_one(newEndport)
+                userData = EmergencySaveCollection.find({"endport" : PersonalPage, "password" : password}, {"_id" : False})[0]
+                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none'}
+                return render_template('PersonalPageHome.html', data=params)
             else:
                 params = {'endport': PersonalPage, 'alert_match': 'block', 'alert_long': 'none'}
                 return render_template('PersonalPageCreate.html', data=params)
         
         elif 'update-data-btn' in request.form:
             # grab data from website 
-            endport = PersonalPage
-            userdata = request.form['userdata']
+            userData = request.form['userdata']
             
             # add chanages to database
-            if len(userdata) < 10000:
-                conn = sqlite3.connect('pagedetail.db')
-                conn.execute(f"UPDATE endports SET DATA = '{userdata}' WHERE ENDPORT='{endport}'")
-                conn.commit()
-                conn.close()
-                params = {'endport': endport, 'userdata': userdata, 'alert_updated': 'block', 'alert_match': 'none'}
+            if len(userData) < 10000:
+                EmergencySaveCollection.update_one({"endport" : PersonalPage}, {"$set" : {"data" : userData}})
+                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'block', 'alert_match': 'none'}
                 return render_template('PersonalPageHome.html', data=params)
         
         elif 'delete-data-btn' in request.form:
-            # grab data from website 
-            endport = PersonalPage
-            userdata = request.form['userdata']
+            # grab data from website
+            userData = request.form['userdata']
             password = request.form['password']
 
             # delete from database
-            conn = sqlite3.connect('pagedetail.db')
-            GET_DATA = conn.execute(f"SELECT ENDPORT, PASSWORD FROM endports WHERE ENDPORT='{endport}'")
-            for raw in GET_DATA:
-                if endport == raw[0] and password == raw[1]:
-                    conn.execute(f"DELETE FROM endports WHERE ENDPORT='{endport}'")
-                    conn.commit()
-                    conn.close()
-                    return redirect('/')
-                else:
-                    params = {'endport': endport, 'userdata': userdata, 'alert_updated': 'none', 'alert_match': 'block'}
-                    return render_template('PersonalPageHome.html', data=params)
+            userCheck = EmergencySaveCollection.count_documents({"endport" : PersonalPage, "password" : password})
+            if userCheck == 1:
+                # delete user
+                EmergencySaveCollection.delete_one({"endport" : PersonalPage})
+                return redirect('/')
+            else:
+                # password wrong
+                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'none', 'alert_match': 'block'}
+                return render_template('PersonalPageHome.html', data=params)
 
-    else:
-        # check that page is available or not
-        conn = sqlite3.connect('pagedetail.db')
-        ENDPORT_PRESENT = False
-        try:
-            GET_DATA = conn.execute(f"SELECT ENDPORT FROM endports WHERE ENDPORT='{PersonalPage}'")
-            for row in GET_DATA:
-                ENDPORT_PRESENT = True
-            conn.close()
-        except:
-            pass
-        
-        if ENDPORT_PRESENT == True:
-            params = {'endport': PersonalPage, 'alert_match': 'none'}
-            return render_template('PersonalPageLogin.html', data=params)
-        else:
-            params = {'endport': PersonalPage, 'alert_match': 'none', 'alert_long': 'none'}
-            return render_template('PersonalPageCreate.html', data=params)
 
 
 @app.errorhandler(400) 
@@ -125,4 +109,4 @@ def not_found500(e):
   return render_template("500.html") 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=SETTING.DEBUG)
