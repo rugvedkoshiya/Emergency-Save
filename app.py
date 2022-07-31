@@ -76,7 +76,7 @@ def PersonalPage(PersonalPage):
             # add chanages to database
             userDataCol = EmergencySaveCollection.find({"endport" : PersonalPage}, {"_id" : False})[0]
             if sha256_crypt.verify(password, userDataCol["password"]):
-                if len(userData) < 10000:
+                if len(userData) < 100000:
                     EmergencySaveCollection.update_one({"endport" : PersonalPage}, {"$set" : {"data" : userData}})
                     params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'block', 'alert_match': 'none', 'alert_length':'none'}
                     return render_template('PersonalPageHome.html', data=params)
