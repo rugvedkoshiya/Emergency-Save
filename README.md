@@ -1,2 +1,3 @@
 ## Emergency Save
-https://emergencysave.herokuapp.com
+
+An online pastebin for emergency

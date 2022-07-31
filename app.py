@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect
 from config import Config as SETTING
 from flask_pymongo import pymongo
-# import sqlite3
+from passlib.hash import sha256_crypt
 
 app = Flask(__name__)
+app.secret_key = SETTING.FLASK_KEY
 
 # database Settings
 myclient = pymongo.MongoClient(SETTING.MONGO_LINK)
@@ -40,10 +41,9 @@ def PersonalPage(PersonalPage):
             password = request.form['password']
 
             # authentication of user
-            userCheck = EmergencySaveCollection.count_documents({"endport" : PersonalPage, "password" : password})
-            if userCheck == 1:
-                userData = EmergencySaveCollection.find({"endport" : PersonalPage, "password" : password}, {"_id" : False})[0]
-                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none'}
+            userData = EmergencySaveCollection.find({"endport" : PersonalPage}, {"_id" : False})[0]
+            if sha256_crypt.verify(password, userData["password"]):
+                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none', 'alert_length':'none'}
                 return render_template('PersonalPageHome.html', data=params)
             else:
                 params = {'endport': PersonalPage, 'alert_match': 'block'}
@@ -57,12 +57,12 @@ def PersonalPage(PersonalPage):
             if password == passwordConf:
                 newEndport = {
                     "endport" : PersonalPage,
-                    "password" : password,
+                    "password" : sha256_crypt.hash(password),
                     "data" : ""
                 }
                 EmergencySaveCollection.insert_one(newEndport)
-                userData = EmergencySaveCollection.find({"endport" : PersonalPage, "password" : password}, {"_id" : False})[0]
-                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none'}
+                userData = EmergencySaveCollection.find({"endport" : PersonalPage}, {"_id" : False})[0]
+                params = {'endport': PersonalPage, 'userdata': userData["data"], 'alert_updated': 'none', 'alert_match': 'none', 'alert_length':'none'}
                 return render_template('PersonalPageHome.html', data=params)
             else:
                 params = {'endport': PersonalPage, 'alert_match': 'block', 'alert_long': 'none'}
@@ -71,11 +71,21 @@ def PersonalPage(PersonalPage):
         elif 'update-data-btn' in request.form:
             # grab data from website 
             userData = request.form['userdata']
+            password = request.form['password']
             
             # add chanages to database
-            if len(userData) < 10000:
-                EmergencySaveCollection.update_one({"endport" : PersonalPage}, {"$set" : {"data" : userData}})
-                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'block', 'alert_match': 'none'}
+            userDataCol = EmergencySaveCollection.find({"endport" : PersonalPage}, {"_id" : False})[0]
+            if sha256_crypt.verify(password, userDataCol["password"]):
+                if len(userData) < 10000:
+                    EmergencySaveCollection.update_one({"endport" : PersonalPage}, {"$set" : {"data" : userData}})
+                    params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'block', 'alert_match': 'none', 'alert_length':'none'}
+                    return render_template('PersonalPageHome.html', data=params)
+                else:
+                    params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'none', 'alert_match': 'block', 'alert_length':'block'}
+                    return render_template('PersonalPageHome.html', data=params)
+            else:
+                # password wrong
+                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'none', 'alert_match': 'block', 'alert_length':'none'}
                 return render_template('PersonalPageHome.html', data=params)
         
         elif 'delete-data-btn' in request.form:
@@ -84,14 +94,13 @@ def PersonalPage(PersonalPage):
             password = request.form['password']
 
             # delete from database
-            userCheck = EmergencySaveCollection.count_documents({"endport" : PersonalPage, "password" : password})
-            if userCheck == 1:
-                # delete user
+            userDataCol = EmergencySaveCollection.find({"endport" : PersonalPage, "password" : password}, {"_id" : False})[0]
+            if sha256_crypt.verify(password, userDataCol["password"]):
                 EmergencySaveCollection.delete_one({"endport" : PersonalPage})
                 return redirect('/')
             else:
                 # password wrong
-                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'none', 'alert_match': 'block'}
+                params = {'endport': PersonalPage, 'userdata': userData, 'alert_updated': 'none', 'alert_match': 'block', 'alert_length':'none'}
                 return render_template('PersonalPageHome.html', data=params)
 
 

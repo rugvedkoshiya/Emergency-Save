@@ -20,7 +20,10 @@ Emergency Save | {{ data['endport'] }}
     display: {{data['alert_updated']}};
 }
 .alert-pass-match {
-    display: {{data['alert_match']}} ;
+    display: {{data['alert_match']}};
+}
+.alert-length {
+    display: {{data['alert_length']}};
 }
 .changedata-btn {
     margin: 10px;
@@ -34,8 +37,12 @@ Emergency Save | {{ data['endport'] }}
             <strong>Incorrect Password!</strong>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        <div class="alert alert-danger alert-dismissible fade show alert-length" role="alert">
+            <strong>Data must be under 10k characters</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <div class="alert alert-success alert-dismissible fade show alert-updated" role="alert">
-            <strong>Done!</strong> You data has been Updated
+            <strong>Done!</strong> You data has been updated
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </div>
@@ -46,14 +53,14 @@ Emergency Save | {{ data['endport'] }}
             <label for="floatingTextarea2">Your Text</label>
         </div>
         <div class="changedata-btn">
-            <button type="submit" name="update-data-btn" class="btn btn-primary">Update Data</button>
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">Delete Data</button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateBox">Update Data</button>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBox">Delete Data</button>
         </div>
-        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal fade" id="updateBox" tabindex="-1" aria-labelledby="updateBoxLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Delete Confirmation</h5>
+                        <h5 class="modal-title" id="updateBoxLabel">Update Confirmation</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="/" method="POST">
@@ -64,7 +71,28 @@ Emergency Save | {{ data['endport'] }}
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger" name="delete-data-btn">Confirm Delete</button>
+                            <button type="submit" class="btn btn-primary" name="update-data-btn" formaction="/{{ data['endport'] }}">Confirm Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="deleteBox" tabindex="-2" aria-labelledby="deleteBoxLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteBoxLabel">Delete Confirmation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="/" method="POST">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <input type="password" class="form-control" name="password", placeholder="Enter Password">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger" name="delete-data-btn" formaction="/{{ data['endport'] }}">Confirm Delete</button>
                         </div>
                     </form>
                 </div>
